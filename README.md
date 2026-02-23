@@ -140,8 +140,8 @@ ml-model-comparator/
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/Abhiz2411/ml-benchmark-app.git
+cd ml-benchmark-app
 ```
 
 ### Step 2: Create and Activate Virtual Environment
