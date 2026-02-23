@@ -1,0 +1,11 @@
+.venv
+
+conversation*.txt
+
+assets/
+
+*.ipynb
+
+*.pkl
+
+train_all_models.py
