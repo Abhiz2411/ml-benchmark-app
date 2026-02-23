@@ -14,29 +14,27 @@
 
 A universal Streamlit web application that trains and compares **6 machine learning models** on **any CSV dataset** — entirely in the browser, with no pre-training required.
 
-Upload your dataset, choose a target column and input features, and instantly get side-by-side metrics, confusion matrices, radar charts, and detailed reports for all 6 models.
+Upload your dataset, choose a task type, pick a target column and input features, and instantly get side-by-side metrics and visualisations for all 6 models.
 
-> **Current version: Binary Classification**
-> Multiclass classification and regression support are planned for upcoming versions (see [Roadmap](#roadmap)).
-
-The app was originally built and validated on the **UCI Bank Marketing Dataset** (predicting whether a customer will subscribe to a term deposit), and is being progressively generalized into a full supervised learning comparator.
+The app was originally built and validated on the **UCI Bank Marketing Dataset** (predicting whether a customer will subscribe to a term deposit), and has since been extended into a full supervised learning comparator.
 
 ---
 
 ## What the App Does
 
-1. **Upload** any binary classification CSV dataset
+1. **Upload** any CSV dataset
 2. **Preview** the data — shape, first 10 rows, column type summary
-3. **Select** a target column (must have exactly 2 unique values) and input features
-4. **Train** all 6 models on-the-fly with an 80/20 stratified split — a live progress bar tracks each model
-5. **Compare** all 6 models in a single highlighted table (best value per metric shown in green)
-6. **Drill down** into each model — metric cards, confusion matrix, radar chart, bar chart, and classification report
+3. **Select** task type — auto-detected, but always overridable
+4. **Pick** a target column and input features
+5. **Train** all 6 models on-the-fly with an 80/20 split — a live progress bar tracks each model
+6. **Compare** all 6 models in a single highlighted table (best value per metric shown in green)
+7. **Drill down** into each model — metric cards, plots, and detailed reports
 
 ---
 
 ## Models
 
-All 6 models are trained simultaneously with the hyperparameters below.
+### Classification (Binary & Multiclass) — 6 models
 
 | Model | Key Hyperparameters | Scaling |
 |-------|--------------------|----|
@@ -47,13 +45,26 @@ All 6 models are trained simultaneously with the hyperparameters below.
 | Random Forest | `n_estimators=100`, `max_depth=15`, `min_samples_split=10`, `max_features=sqrt` | None |
 | XGBoost | `n_estimators=100`, `max_depth=6`, `learning_rate=0.1`, `subsample=0.8` | None |
 
-### Evaluation Metrics (Binary Classification)
+**Metrics:** Accuracy · AUC · Precision · Recall · F1 Score · MCC
+**Visuals:** Confusion Matrix · Radar Chart · Bar Chart · Classification Report
 
-**Accuracy · AUC · Precision · Recall · F1 Score · MCC**
+### Regression — 6 models
 
-### Sample Results — Bank Marketing Dataset
+| Model | Key Hyperparameters | Scaling |
+|-------|--------------------|----|
+| Linear Regression | default | StandardScaler |
+| Ridge Regression | `alpha=1.0` | StandardScaler |
+| Lasso Regression | `alpha=0.01`, `max_iter=5000` | StandardScaler |
+| Decision Tree | `max_depth=10`, `min_samples_split=20`, `min_samples_leaf=10` | None |
+| Random Forest | `n_estimators=100`, `max_depth=15`, `max_features=sqrt` | None |
+| XGBoost | `n_estimators=100`, `max_depth=6`, `learning_rate=0.1`, `subsample=0.8` | None |
 
-Results when using `bank.csv` with `deposit` as the target and all 16 columns as features.
+**Metrics:** R² · Adjusted R² · RMSE · MAE · MAPE
+**Visuals:** Actual vs Predicted · Residuals Plot · R² Bar Chart
+
+### Sample Results — Bank Marketing Dataset (Binary Classification)
+
+Using `bank.csv` with `deposit` as the target and all 16 columns as features.
 
 | Model | Accuracy | AUC | Precision | Recall | F1 | MCC |
 |-------|----------|-----|-----------|--------|----|-----|
@@ -68,43 +79,36 @@ Results when using `bank.csv` with `deposit` as the target and all 16 columns as
 
 ## Dataset Compatibility
 
-The app currently works with **any binary classification CSV** where:
-- One column has exactly **2 unique non-null values** (the target)
+The app works with **any supervised learning CSV** where:
+- One column is the target (at least 2 unique non-null values)
 - At least one other column exists as a feature
 
 **Auto-preprocessing applied automatically:**
 - Categorical columns (`object` / `category` dtype) → Label Encoded
-- Numeric columns → used as-is
-- Missing values → filled with mode (categorical) or median (numeric)
+- Numeric columns → NaN filled with median
+- Regression target → kept as float (must be numeric)
+
+**Task type auto-detection logic:**
+- 2 unique target values → Binary Classification
+- Categorical target or ≤15 unique values → Multiclass Classification
+- Numeric target with >15 unique values → Regression
+- Always overridable with the radio button
 
 **Tested datasets:**
 - UCI Bank Marketing (`bank.csv`) — included in this repo
 - Titanic survival prediction
 - Breast cancer diagnosis (Wisconsin)
-- Any other binary classification CSV
+- Any other supervised learning CSV
 
 ---
 
 ## Roadmap
 
-The goal is to evolve this into a **complete supervised learning comparator** covering all three task types.
-
 | Version | Task | Status |
 |---------|------|--------|
-| v1 — Current | Binary Classification | ✅ Done |
-| v2 | Multiclass Classification | 🔜 Planned |
-| v3 | Regression | 🔜 Planned |
-
-**Planned additions for Multiclass (v2):**
-- Auto-detect number of target classes and switch to multiclass mode
-- Metrics: macro/weighted Accuracy, Precision, Recall, F1, Cohen's Kappa
-- Per-class breakdown in classification report
-- One-vs-Rest AUC
-
-**Planned additions for Regression (v3):**
-- Regression model set: Linear Regression, Ridge, Lasso, Decision Tree Regressor, Random Forest Regressor, XGBoost Regressor
-- Metrics: RMSE, MAE, R², Adjusted R², MAPE
-- Actual vs Predicted scatter plot, residual plot
+| v1 | Binary Classification | ✅ Done |
+| v2 | Multiclass Classification + Regression | ✅ Done |
+| v3 | Hyperparameter tuning UI, feature importance plots | 🔜 Planned |
 
 ---
 
@@ -212,8 +216,9 @@ streamlit run app.py --server.port 8502
 
 **Target column validation error**
 ```
-The selected target column must have exactly 2 unique non-null values (binary classification).
-Multiclass support is coming in v2.
+Binary: target must have exactly 2 unique non-null values.
+Multiclass: target must have 3 or more unique values.
+Regression: target must be numeric.
 ```
 
 **Training is slow**
